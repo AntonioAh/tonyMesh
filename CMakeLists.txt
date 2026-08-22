@@ -43,16 +43,14 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 
 
-add_library(tonyMesh src/glad.c)
-
-target_sources(tonyMesh PRIVATE
-        FILE_SET CXX_MODULES FILES
-        src/definitions.ixx
-        src/mesh.ixx
-        src/reconstruction.ixx
-        src/accelerationStructures.ixx
-        src/pca.ixx
+add_library(tonyMesh src/glad.c
+    src/mesh.cpp
+    src/reconstruct.cpp
+    src/normals.cpp
+    src/pca.cpp
+    src/dataStructures.cpp
 )
+
 
 target_include_directories(tonyMesh PUBLIC include)
 target_link_libraries(tonyMesh PUBLIC Eigen3::Eigen glfw OpenGL::GL igl::core)
