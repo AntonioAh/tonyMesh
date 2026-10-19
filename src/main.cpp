@@ -75,8 +75,8 @@ int main() {
     auto bVerts = quadMesh.boundaryVertices();
 
     std::cout << "Test Connettivita:" << std::endl;
-    std::cout << " - Totale spigoli unici: " << edges.rows() << std::endl;
-    std::cout << " - Spigoli di bordo: " << bEdges.rows() << std::endl;
+    std::cout << " - Totale spigoli unici: " << edges.size() << std::endl;
+    std::cout << " - Spigoli di bordo: " << bEdges.size() << std::endl;
     std::cout << " - Vertici di bordo: " << bVerts.size() << std::endl;
     std::cout << " - Mesh chiusa: " << (quadMesh.isClosed() ? "si" : "no") << std::endl;
     std::cout << " - Vicini vertice 0: ";

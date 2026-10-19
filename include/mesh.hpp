@@ -4,7 +4,9 @@
 #include <definitions.hpp>
 #include <utility>
 #include <array>
+#include <unordered_set>
 #include <vector>
+#include <edge.hpp>
 
 namespace tonyMesh {
 
@@ -59,16 +61,16 @@ public:
     [[nodiscard]] std::vector<FaceType> faceFaceNeighbors(Eigen::Index faceIdx) const;
     [[nodiscard]] FaceAdjacencyMatrix faceFaceAdjacency() const;
 
-    [[nodiscard]] EdgeMatrix edges() const;
-    [[nodiscard]] EdgeMatrix boundaryEdges() const;
+    [[nodiscard]] std::vector<Edge> edges() const;
+    [[nodiscard]] std::vector<Edge> boundaryEdges() const;
     [[nodiscard]] std::vector<Eigen::Index> boundaryVertices() const;
 
     [[nodiscard]] bool isBoundaryVertex(Eigen::Index vertexIdx) const;
-    [[nodiscard]] bool isBoundaryEdge(Eigen::Index v1, Eigen::Index v2) const;
+    [[nodiscard]] bool isBoundaryEdge(Edge e) const;
     [[nodiscard]] bool isClosed() const;
 
-    [[nodiscard]] sizet vertexValence(Eigen::Index vertexIdx) const;
-    [[nodiscard]] Eigen::VectorXi vertexValences() const;
+    [[nodiscard]] size_t vertexValence(Eigen::Index vertexIdx) const;
+    [[nodiscard]] std::vector<size_t> vertexValences() const;
 
 protected:
     VertexMatrix m_vertices;

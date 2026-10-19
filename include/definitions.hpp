@@ -9,6 +9,7 @@ namespace tonyMesh {
 
     typedef unsigned FaceType;
     typedef Eigen::Index Index;
+    struct Edge;
 
 
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 3> VertexMatrix;
@@ -17,8 +18,8 @@ namespace tonyMesh {
     typedef Eigen::RowVector<Scalar, 3> Vertex;
     typedef Eigen::RowVector<FaceType, 3> Face;
 
-    typedef Eigen::Matrix<Eigen::Index, Eigen::Dynamic, 2> EdgeMatrix;
     typedef Eigen::Matrix<FaceType, Eigen::Dynamic, 3> FaceAdjacencyMatrix;
+
 }
 
 #endif //TONYMESH_DEFINITIONS_HPP
