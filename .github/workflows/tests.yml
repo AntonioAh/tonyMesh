@@ -7,16 +7,17 @@ on:
 jobs:
   build-and-test:
     if: contains(github.event.head_commit.message, '[tests]')
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
 
       - name: Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libeigen3-dev libomp-dev ninja-build
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: 1
+          HOMEBREW_NO_INSTALL_CLEANUP: 1
+        run: brew install eigen libomp ninja
 
       - name: Configure CMake
         run: cmake -B build -S . -GNinja -DCMAKE_BUILD_TYPE=Release
