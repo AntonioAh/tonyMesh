@@ -8,9 +8,8 @@
 #include <utility>
 
 namespace tonyMesh {
-
     namespace {
-        std::filesystem::path resolveDataPath(const std::string& fileName) {
+        std::filesystem::path resolveDataPath(const std::string &fileName) {
             std::filesystem::path p(fileName);
             if (std::filesystem::exists(p)) {
                 return p;
@@ -21,7 +20,7 @@ namespace tonyMesh {
                 return dataPath;
             }
 #endif
-            for (const auto* prefix : {"data", "../data", "../../data"}) {
+            for (const auto *prefix: {"data", "../data", "../../data"}) {
                 std::filesystem::path relPath = std::filesystem::path(prefix) / p;
                 if (std::filesystem::exists(relPath)) {
                     return relPath;
@@ -30,7 +29,7 @@ namespace tonyMesh {
             return p;
         }
 
-        bool nextValidLine(std::ifstream& file, std::string& line) {
+        bool nextValidLine(std::ifstream &file, std::string &line) {
             while (std::getline(file, line)) {
                 const auto first = line.find_first_not_of(" \t\r\n");
                 if (first == std::string::npos || line[first] == '#') {
@@ -41,7 +40,7 @@ namespace tonyMesh {
             return false;
         }
 
-        std::expected<Mesh, IO_ERROR> readOFF(const std::filesystem::path& filePath) {
+        std::expected<Mesh, IO_ERROR> readOFF(const std::filesystem::path &filePath) {
             std::ifstream file(filePath);
             if (!file.is_open()) {
                 return std::unexpected(IO_ERROR::GENERIC);
@@ -111,7 +110,7 @@ namespace tonyMesh {
         }
     }
 
-    std::expected<Mesh, IO_ERROR> readMesh(std::string& fileName, MESH_FILE_TYPE fileType) {
+    std::expected<Mesh, IO_ERROR> readMesh(std::string &fileName, MESH_FILE_TYPE fileType) {
         const auto filePath = resolveDataPath(fileName);
         fileName = filePath.string();
 
@@ -120,7 +119,7 @@ namespace tonyMesh {
             if (!ext.empty() && ext.front() == '.') {
                 ext.erase(0, 1);
             }
-            for (auto& c : ext) {
+            for (auto &c: ext) {
                 c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
             }
             if (ext == "off") {
@@ -138,8 +137,7 @@ namespace tonyMesh {
         }
     }
 
-    std::expected<Mesh, IO_ERROR> readMesh(std::string&& fileName, MESH_FILE_TYPE fileType) {
+    std::expected<Mesh, IO_ERROR> readMesh(std::string &&fileName, MESH_FILE_TYPE fileType) {
         return readMesh(fileName, fileType);
     }
-
 }

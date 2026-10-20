@@ -1,15 +1,14 @@
 #ifndef TONYMESH_MESH_HPP
 #define TONYMESH_MESH_HPP
 
-#include <definitions.hpp>
-#include <utility>
 #include <array>
-#include <unordered_set>
-#include <vector>
+#include <definitions.hpp>
 #include <edge.hpp>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
 namespace tonyMesh {
-
 class Mesh {
 public:
     Mesh() = default;
@@ -41,9 +40,7 @@ public:
     [[nodiscard]] Face getFace(Eigen::Index idx) noexcept { return m_faces.row(idx); }
 
     [[nodiscard]] std::array<Vertex, 2> boundingBox() const noexcept {
-        return {
-            m_minBounding, m_maxBounding
-        };
+        return {m_minBounding, m_maxBounding};
     };
 
     void setVertices(const VertexMatrix& vertices) { m_vertices = vertices; }
@@ -78,7 +75,6 @@ protected:
 
     Vertex m_minBounding, m_maxBounding;
 };
+}  // namespace tonyMesh
 
-} // namespace tonyMesh
-
-#endif //TONYMESH_MESH_HPP
+#endif  // TONYMESH_MESH_HPP
