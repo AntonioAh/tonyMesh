@@ -5,31 +5,38 @@
 #include <igl/read_triangle_mesh.h>
 #include <read_mesh.hpp>
 
-#include "../cmake-build-debug/_deps/libigl-src/include/igl/edge_topology.h"
-#include "igl/adjacency_list.h"
-#include "igl/is_boundary_edge.h"
+#include <igl/edge_topology.h>
+#include <igl/adjacency_list.h>
+#include <igl/is_boundary_edge.h>
+#include <igl/is_edge_manifold.h>
+#include <igl/boundary_facets.h>
 
 using namespace tonyMesh;
 
-class ConnettivityTest : public ::testing::Test{
+class ConnettivityTest : public ::testing::TestWithParam<std::string>{
 protected:
     static inline tonyMesh::Mesh mesh;
     static inline Eigen::MatrixXf V;
     static inline Eigen::Matrix<FaceType, Eigen::Dynamic, 3> F;
+    static inline std::string fileName;
 
-    static void SetUpTestSuite() {
-        std::string fileName{"hound.off"};
-        igl::read_triangle_mesh(fileName, V, F);
-        mesh = tonyMesh::readMesh(fileName, tonyMesh::MESH_FILE_TYPE::OFF).value();
+    void SetUp() override {
+        std::string curr = GetParam();
+
+        if (curr != fileName) {
+            fileName = curr;
+            mesh = readMesh(fileName, MESH_FILE_TYPE::OFF).value();
+            igl::read_triangle_mesh(fileName, V, F);
+        }
     }
 };
 
-TEST_F(ConnettivityTest, dimensions) {
+TEST_P(ConnettivityTest, dimensions) {
     EXPECT_EQ(mesh.numVertices(), V.rows());
     EXPECT_EQ(mesh.numFaces(), F.rows());
 }
 
-TEST_F(ConnettivityTest, vertices) {
+TEST_P(ConnettivityTest, vertices) {
     const auto nV{mesh.numVertices()};
     const auto& vertices{mesh.getVertices()};
 
@@ -40,7 +47,7 @@ TEST_F(ConnettivityTest, vertices) {
     }
 }
 
-TEST_F(ConnettivityTest, faces) {
+TEST_P(ConnettivityTest, faces) {
     const auto nF{mesh.numFaces()};
     const auto& faces{mesh.getFaces()};
 
@@ -51,7 +58,7 @@ TEST_F(ConnettivityTest, faces) {
     }
 }
 
-TEST_F(ConnettivityTest, vertexVertex) {
+TEST_P(ConnettivityTest, vertexVertex) {
     const auto nV{mesh.numVertices()};
     std::vector<std::vector<Index>> truth;
     igl::adjacency_list(F, truth);
@@ -70,7 +77,7 @@ TEST_F(ConnettivityTest, vertexVertex) {
     }
 }
 
-TEST_F(ConnettivityTest, boundary) {
+TEST_P(ConnettivityTest, boundary) {
     if (! igl::is_edge_manifold(F))
         return;
 
@@ -92,9 +99,18 @@ TEST_F(ConnettivityTest, boundary) {
     }
 }
 
-TEST_F(ConnettivityTest, closedMesh) {
+TEST_P(ConnettivityTest, closedMesh) {
     Eigen::MatrixXi bEdges;
     igl::boundary_facets(F, bEdges);
 
     EXPECT_EQ(mesh.isClosed(), bEdges.rows() == 0);
 }
+
+INSTANTIATE_TEST_SUITE_P(
+    MeshDataset,
+    ConnettivityTest,
+    ::testing::Values(
+        "hound.off",
+        "luigi.off"
+    )
+);

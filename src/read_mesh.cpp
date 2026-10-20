@@ -113,6 +113,7 @@ namespace tonyMesh {
 
     std::expected<Mesh, IO_ERROR> readMesh(std::string& fileName, MESH_FILE_TYPE fileType) {
         const auto filePath = resolveDataPath(fileName);
+        fileName = filePath.string();
 
         if (fileType == MESH_FILE_TYPE::GENERIC) {
             std::string ext = filePath.extension().string();
