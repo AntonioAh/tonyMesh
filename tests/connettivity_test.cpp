@@ -74,6 +74,7 @@ TEST_F(ConnettivityTest, boundary) {
     if (! igl::is_edge_manifold(F))
         return;
 
+
     const auto boundEdges = mesh.boundaryEdges();
     const auto edges = mesh.edges();
 
