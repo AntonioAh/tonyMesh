@@ -51,7 +51,6 @@ namespace tonyMesh {
 
         std::ranges::sort(neighbors);
         neighbors.erase(std::ranges::unique(neighbors).begin(), neighbors.end());
-
         return neighbors;
     }
 
@@ -61,7 +60,7 @@ namespace tonyMesh {
 
         for (Index f=0; f < nF; f++) {
             adjacency[m_faces(f, 0)].push_back(m_faces(f, 1));
-            adjacency[m_faces(f, 0)].push_back(m_faces(f, 1));
+            adjacency[m_faces(f, 0)].push_back(m_faces(f, 2));
 
             adjacency[m_faces(f, 1)].push_back(m_faces(f, 0));
             adjacency[m_faces(f, 1)].push_back(m_faces(f, 2));
@@ -180,22 +179,11 @@ namespace tonyMesh {
 
     bool Mesh::isBoundaryEdge(Edge e) const {
         const auto boundEdges = boundaryEdges();
+        return std::ranges::binary_search(boundaryEdges(), e);
     }
 
     bool Mesh::isClosed() const {
-        const auto boundEdges= boundaryEdges();
-        std::unordered_map<Index, short> count;
-
-        for (const auto& [first, second] : boundEdges) {
-            count[first]++;
-            count[second]++;
-        }
-
-        for (const auto& [idx, c] : count) {
-            if (c != 2)
-                return false;
-        }
-        return true;
+        return boundaryEdges().empty();
     }
 
 

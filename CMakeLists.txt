@@ -38,6 +38,10 @@ target_include_directories(tonyMesh PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
+target_compile_definitions(tonyMesh PUBLIC
+    TONYMESH_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data"
+)
+
 target_link_libraries(tonyMesh PUBLIC
     Eigen3::Eigen
     OpenMP::OpenMP_CXX
@@ -49,3 +53,6 @@ set_target_properties(tonyMesh_app PROPERTIES OUTPUT_NAME "tonyMesh")
 target_link_libraries(tonyMesh_app PRIVATE
     tonyMesh
 )
+
+enable_testing()
+add_subdirectory(tests)

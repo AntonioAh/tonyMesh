@@ -69,7 +69,7 @@ int main() {
 
     auto vv = quadMesh.vertexVertexAdjacency();
     auto vf = quadMesh.vertexFaceAdjacency();
-    auto ff = quadMesh.faceFaceAdjacency();
+    // auto ff = quadMesh.faceFaceAdjacency();
     auto edges = quadMesh.edges();
     auto bEdges = quadMesh.boundaryEdges();
     auto bVerts = quadMesh.boundaryVertices();
@@ -83,7 +83,7 @@ int main() {
     for (auto v : quadMesh.vertexVertexNeighbors(0)) std::cout << v << " ";
     std::cout << std::endl;
     std::cout << " - Facce adiacenti a faccia 0: ";
-    for (auto f : quadMesh.faceFaceNeighbors(0)) std::cout << f << " ";
+    // for (auto f : quadMesh.faceFaceNeighbors(0)) std::cout << f << " ";
     std::cout << std::endl;
 
     return 0;
