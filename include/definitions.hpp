@@ -3,7 +3,8 @@
 
 #include <Eigen/Core>
 
-namespace tonyMesh {
+namespace tonyMesh
+{
 
 typedef float Scalar;
 typedef double DoubleScalar;
@@ -19,6 +20,7 @@ typedef Eigen::RowVector<Scalar, 3> Vertex;
 typedef Eigen::RowVector<FaceType, 3> Face;
 
 typedef Eigen::Matrix<FaceType, Eigen::Dynamic, 3> FaceAdjacencyMatrix;
+typedef int cioa;
 }  // namespace tonyMesh
 
 #endif  // TONYMESH_DEFINITIONS_HPP
