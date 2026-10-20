@@ -5,21 +5,24 @@ on:
     branches: [main]
 
 jobs:
-  if: contains(github.event.head_commit.message, '[tests]')
+  build-and-test:
+    if: contains(github.event.head_commit.message, '[tests]')
+    runs-on: ubuntu-latest
 
-  runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
 
-  steps:
-    - name: Checkout Repo
-      uses: actions/checkout@v4
+      - name: Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libeigen3-dev libomp-dev ninja-build
 
-    - name: Dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libeigen3-dev libomp-dev ninja-build
+      - name: Configure CMake
+        run: cmake -B build -S . -GNinja -DCMAKE_BUILD_TYPE=Release
 
-    - name: Compile
-      run: cmake --build build --parallel
+      - name: Compile
+        run: cmake --build build --parallel
 
-    - name: Run tests
-      run: ctest --test-dir build --output-on-failure
+      - name: Run tests
+        run: ctest --test-dir build --output-on-failure
