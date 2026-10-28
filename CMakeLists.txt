@@ -1,0 +1,41 @@
+cmake_minimum_required(VERSION 3.25...4.0)
+project(tonyMesh
+    VERSION 0.1.0
+    LANGUAGES C CXX)
+
+option(TONY_MESH_BUILD_APP ON)
+option(TONY_MESH_BUILD_TESTS ${PROJECT_IS_TOP_LEVEL})
+option(TONY_MESH_WARNINGS_AS_ERRORS OFF)
+option(TONY_MESH_ENABLE_SANITIZERS OFF)
+
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Build Type" FORCE)
+    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Dubug Release RelWithDebInfo MinSizeRel)
+endif ()
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
+
+set(CMAKE_CXX_STANDARD 20)
+
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+include(Dependencies)
+include(TargetDefaults)
+
+add_subdirectory(src/core)
+
+#if(TONY_MESH_BUILD_APP)
+    add_subdirectory(src/app)
+#endif()
+
+if(TONY_MESH_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
