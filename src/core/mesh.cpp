@@ -130,4 +130,55 @@ namespace tonyMesh {
         }
         return result;
     }
+
+    std::vector<bool> Mesh::isBoundaryEdge(const std::vector<Edge> &edges) const {
+        std::vector<bool> count(edges.size(), false);
+
+        for (FaceIndex i{}; i < m_faces.rows(); i++) {
+            Edge first{m_faces(i, 0), m_faces(i, 1)};
+            Edge second{m_faces(i, 0), m_faces(i, 2)};
+            Edge third{m_faces(i, 1), m_faces(i, 2)};
+
+            auto f{std::lower_bound(edges.begin(), edges.end(), first) - edges.begin()};
+            auto s{std::lower_bound(edges.begin(), edges.end(), second) - edges.begin()};
+            auto t{std::lower_bound(edges.begin(), edges.end(), third) - edges.begin()};
+
+            count[f] = !count[f];
+            count[s] = !count[s];
+            count[t] = !count[t];
+        }
+
+        return count;
+
+    }
+
+    std::pair<std::vector<Edge>, std::vector<bool>> Mesh::isBoundaryEdge() const {
+        std::vector<Edge> edges;
+
+        edges.reserve(3 * m_faces.rows());
+        for (FaceIndex i{}; i < m_faces.rows(); i++) {
+            edges.emplace_back(m_faces(i, 0), m_faces(i, 1));
+            edges.emplace_back(m_faces(i, 0), m_faces(i, 2));
+            edges.emplace_back(m_faces(i, 1), m_faces(i, 2));
+        }
+
+        std::ranges::sort(edges, [](const Edge& a, const Edge& b) {
+            return a < b;
+        });
+
+        size_t i{};
+        std::vector<Edge> unique;
+        std::vector<bool> isBound;
+
+        while (i < edges.size()) {
+            unique.push_back(edges[i]);
+            bool jump{i == edges.size()-1 || edges[i] == edges[i+1]};
+            isBound.push_back(!jump);
+
+            i = i + (jump ? 2 : 1);
+        }
+
+
+        return {unique, isBound};
+    }
 }

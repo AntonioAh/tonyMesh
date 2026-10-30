@@ -57,6 +57,8 @@ public:
 
     [[nodiscard]] std::vector<Edge> edges() const;
     [[nodiscard]] std::vector<Edge> boundaryEdges() const;
+    [[nodiscard]] std::vector<bool> isBoundaryEdge(const std::vector<Edge>& edges) const;
+    [[nodiscard]] std::pair<std::vector<Edge>, std::vector<bool>> isBoundaryEdge() const;
 
 
 

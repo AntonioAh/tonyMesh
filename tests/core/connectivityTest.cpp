@@ -3,6 +3,7 @@
 #include <igl/adjacency_list.h>
 #include <igl/vertex_triangle_adjacency.h>
 #include <igl/edges.h>
+#include <igl/is_boundary_edge.h>
 
 #include <Eigen/Core>
 #include <core/common.hpp>
@@ -11,7 +12,6 @@
 
 #include <vector>
 
-#include "../../build/release/_deps/libigl-src/include/igl/is_boundary_edge.h"
 
 using namespace tonyMesh;
 
@@ -136,6 +136,46 @@ TEST_F(ConnectivityTest, boundaryEdges) {
     }
     std::cout << "boundary edges : " << myBoundary.size() << "\n";
     EXPECT_EQ(myBoundary.size(), counter);
+}
 
+TEST_F(ConnectivityTest, isBoundaryEdges_first) {
+    Eigen::MatrixXi edges;
+    Eigen::VectorXi isBoundary;
+    igl::edges(faces, edges);
+    igl::is_boundary_edge(edges, faces, isBoundary);
 
+    auto myEdges{mesh.edges()};
+    auto myIsBound{mesh.isBoundaryEdge(myEdges)};
+
+    EXPECT_EQ(myEdges.size(), edges.rows());
+    size_t counter{};
+
+    for (Index i{}; i < edges.rows(); i++) {
+        counter++;
+
+        Edge e{edges(i, 0), edges(i, 1)};
+        auto idx{std::lower_bound(myEdges.begin(), myEdges.end(), e) - myEdges.begin()};
+
+        EXPECT_EQ(myIsBound[idx], isBoundary(i));
+    }
+}
+
+TEST_F(ConnectivityTest, isBoundaryEdges_second) {
+    Eigen::MatrixXi edges;
+    Eigen::VectorXi isBoundary;
+    igl::edges(faces, edges);
+    igl::is_boundary_edge(edges, faces, isBoundary);
+
+    auto myEdges{mesh.edges()};
+    auto myIsBound{mesh.isBoundaryEdge(myEdges)};
+
+    auto [otherEdge, otherBoun] = mesh.isBoundaryEdge();
+    EXPECT_EQ(otherEdge.size(), myEdges.size());
+    EXPECT_EQ(otherBoun.size(), myIsBound.size());
+    EXPECT_EQ(otherEdge.size(), otherBoun.size());
+
+    for (size_t i{}; i < otherEdge.size(); i++) {
+        EXPECT_EQ(otherEdge[i], myEdges[i]);
+        EXPECT_EQ(otherBoun[i], myIsBound[i]);
+    }
 }
