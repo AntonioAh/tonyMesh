@@ -33,7 +33,7 @@
       "inherits": "base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "SFS_ENABLE_SANITIZERS": "ON"
+        "TONY_MESH_ENABLE_SANITIZERS": "ON"
       }
     }
   ],
