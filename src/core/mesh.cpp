@@ -103,4 +103,31 @@ namespace tonyMesh {
 
         return edges;
     }
+
+    std::vector<Edge> Mesh::boundaryEdges() const {
+        std::vector<Edge> edges;
+        edges.reserve(3 * m_faces.rows());
+
+        for (FaceIndex i{}; i < m_faces.rows(); i++) {
+            edges.emplace_back(m_faces(i, 0), m_faces(i, 1));
+            edges.emplace_back(m_faces(i, 0), m_faces(i, 2));
+            edges.emplace_back(m_faces(i, 1), m_faces(i, 2));
+        }
+
+        std::ranges::sort(edges, [](const Edge& a, const Edge& b) {
+            return a < b;
+        });
+
+        std::vector<Edge> result;
+        size_t counter{};
+        while (counter < edges.size()) {
+            if (counter == edges.size()-1 || edges[counter] != edges[counter+1]) {
+                result.push_back(edges[counter]);
+                counter++;
+            }
+            else
+                counter += 2;
+        }
+        return result;
+    }
 }

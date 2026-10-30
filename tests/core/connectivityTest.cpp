@@ -11,6 +11,8 @@
 
 #include <vector>
 
+#include "../../build/release/_deps/libigl-src/include/igl/is_boundary_edge.h"
+
 using namespace tonyMesh;
 
 class ConnectivityTest : public testing::Test {
@@ -111,4 +113,29 @@ TEST_F(ConnectivityTest, edges) {
         EXPECT_EQ(myEdges[i].first, buildEdges[i].first);
         EXPECT_EQ(myEdges[i].second, buildEdges[i].second);
     }
+    std::cout << "total edges : " << myEdges.size();
+}
+
+TEST_F(ConnectivityTest, boundaryEdges) {
+    Eigen::MatrixXi edges;
+    Eigen::VectorXi isBoundary;
+
+    igl::edges(faces, edges);
+    igl::is_boundary_edge(edges, faces, isBoundary);
+
+    auto myBoundary{mesh.boundaryEdges()};
+
+    size_t counter{};
+    for (Index i{}; i < isBoundary.size(); i++) {
+        if (isBoundary(i)) {
+            counter++;
+
+            bool found{std::ranges::find(myBoundary, Edge{edges(i, 0), edges(i, 1)}) != myBoundary.end()};
+            EXPECT_TRUE(found);
+        }
+    }
+    std::cout << "boundary edges : " << myBoundary.size() << "\n";
+    EXPECT_EQ(myBoundary.size(), counter);
+
+
 }

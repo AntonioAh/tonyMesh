@@ -56,6 +56,7 @@ public:
     [[nodiscard]] std::vector<std::vector<FaceIndex>> vertexFaceAdjacency() const;
 
     [[nodiscard]] std::vector<Edge> edges() const;
+    [[nodiscard]] std::vector<Edge> boundaryEdges() const;
 
 
 
