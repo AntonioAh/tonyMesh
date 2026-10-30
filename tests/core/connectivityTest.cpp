@@ -2,6 +2,7 @@
 #include <igl/read_triangle_mesh.h>
 #include <igl/adjacency_list.h>
 #include <igl/vertex_triangle_adjacency.h>
+#include <igl/edges.h>
 
 #include <Eigen/Core>
 #include <core/common.hpp>
@@ -87,5 +88,27 @@ TEST_F(ConnectivityTest, vertexFace) {
             EXPECT_EQ(myAdj[i][j], adjacency[i][j]);
             EXPECT_EQ(curr[j], adjacency[i][j]);
         }
+    }
+}
+
+TEST_F(ConnectivityTest, edges) {
+    Eigen::MatrixXi edges;
+    igl::edges(faces, edges);
+
+    auto myEdges{mesh.edges()};
+    EXPECT_EQ(myEdges.size(), edges.rows());
+
+    std::vector<Edge> buildEdges;
+    buildEdges.reserve(myEdges.size());
+    for (Index i{}; i < edges.rows(); i++)
+        buildEdges.emplace_back(edges(i, 0), edges(i, 1));
+
+    std::ranges::sort(buildEdges, [](const auto& a, const auto& b) {
+        return a < b;
+    });
+
+    for (size_t i{}; i < myEdges.size(); i++) {
+        EXPECT_EQ(myEdges[i].first, buildEdges[i].first);
+        EXPECT_EQ(myEdges[i].second, buildEdges[i].second);
     }
 }

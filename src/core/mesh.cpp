@@ -83,4 +83,24 @@ namespace tonyMesh {
         }
         return faces;
     }
+
+    std::vector<Edge> Mesh::edges() const {
+        std::vector<Edge> edges;
+        edges.reserve(3 * m_faces.rows());
+
+        for (FaceIndex i{}; i < m_faces.rows(); i++) {
+            edges.emplace_back(m_faces(i, 0), m_faces(i, 1));
+            edges.emplace_back(m_faces(i, 0), m_faces(i, 2));
+            edges.emplace_back(m_faces(i, 1), m_faces(i, 2));
+        }
+
+        std::ranges::sort(edges, [](const Edge& a, const Edge& b) {
+            return a < b;
+        });
+
+        auto [first, last] = std::ranges::unique(edges);
+        edges.erase(first, last);
+
+        return edges;
+    }
 }

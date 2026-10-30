@@ -5,6 +5,26 @@
 
 namespace tonyMesh {
 
+
+struct Edge {
+    VertexIndex first, second;
+
+    explicit Edge(VertexIndex first, VertexIndex second) :
+        first{std::min(first, second)},
+        second{std::max(first, second)} {
+
+    }
+
+    bool operator==(const Edge &other) const {
+        return first==other.first && second==other.second;
+    }
+
+    bool operator<(const Edge& other) const {
+        if (first != other.first)
+            return first < other.first;
+        return second < other.second;
+    }
+};
 class Mesh {
 public:
     Mesh() = default;
@@ -34,6 +54,9 @@ public:
 
     [[nodiscard]] std::vector<std::vector<VertexIndex>> vertexVertexAdjacency() const;
     [[nodiscard]] std::vector<std::vector<FaceIndex>> vertexFaceAdjacency() const;
+
+    [[nodiscard]] std::vector<Edge> edges() const;
+
 
 
 protected:
