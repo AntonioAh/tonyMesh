@@ -132,6 +132,9 @@ TEST_F(ConnectivityTest, boundaryEdges) {
 
             bool found{std::ranges::find(myBoundary, Edge{edges(i, 0), edges(i, 1)}) != myBoundary.end()};
             EXPECT_TRUE(found);
+
+            EXPECT_TRUE(mesh.isOnBoundary(myBoundary[i].first));
+            EXPECT_TRUE(mesh.isOnBoundary(myBoundary[i].second));
         }
     }
     std::cout << "boundary edges : " << myBoundary.size() << "\n";

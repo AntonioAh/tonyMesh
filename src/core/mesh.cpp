@@ -1,6 +1,7 @@
 #include <core/mesh.hpp>
 #include <ranges>
 #include <algorithm>
+#include <unordered_set>
 #include <tbb/parallel_for.h>
 
 namespace tonyMesh {
@@ -9,19 +10,22 @@ namespace tonyMesh {
         m_faces.resize(faces, 3);
     }
 
-    Mesh::Mesh(const VertexMatrix &vertices, const FaceMatrix &faces) :
+    Mesh::Mesh(const VertexMatrix &vertices, const FaceMatrix &faces, bool withDCEL) :
     m_vertices(vertices), m_faces(faces)
     {
-
+        if (withDCEL)
+            m_buildDCEL();
     }
 
-    Mesh::Mesh(VertexMatrix &&vertices, FaceMatrix &&faces) :
+    Mesh::Mesh(VertexMatrix &&vertices, FaceMatrix &&faces, bool withDCEL) :
     m_vertices(std::move(vertices)), m_faces(std::move(faces))
     {
-
+        if (withDCEL)
+            m_buildDCEL();
     }
 
     std::vector<VertexIndex> Mesh::getNeighbors(VertexIndex v) const {
+
         std::vector<VertexIndex> neighs;
         for (FaceIndex i{}; i < m_faces.rows(); i++) {
             if (m_faces(i, 0) == v) {
@@ -180,5 +184,34 @@ namespace tonyMesh {
 
 
         return {unique, isBound};
+    }
+
+    bool Mesh::isOnBoundary(VertexIndex v) const {
+        int countEdges;
+        std::unordered_map<VertexIndex, int> others;
+
+        for (FaceIndex i{}; i < m_faces.rows(); i++) {
+            if (m_faces(i, 0) == v) {
+                others[m_faces(i, 1)]++;
+                others[m_faces(i, 2)]++;
+            }
+            else if (m_faces(i, 1) == v) {
+                others[m_faces(i, 0)]++;
+                others[m_faces(i, 2)]++;
+            }
+            else if (m_faces(i, 2) == v) {
+                others[m_faces(i, 0)]++;
+                others[m_faces(i, 1)]++;
+            }
+        }
+
+        for (const auto& [neigh, counter] : others)
+            if (counter == 1)
+                return true;
+        return false;
+    }
+
+    void Mesh::m_buildDCEL() {
+        m_dcel = std::make_unique<DCEL>(*this);
     }
 }

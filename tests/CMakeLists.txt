@@ -2,6 +2,7 @@ include(GoogleTest)
 
 add_executable(tonyMesh_tests
         core/connectivityTest.cpp
+        core/dcelTest.cpp
 )
 
 target_link_libraries(tonyMesh_tests PRIVATE tonyMesh::core GTest::gtest_main)

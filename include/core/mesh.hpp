@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cassert>
 #include <core/common.hpp>
+#include <core/dcel.hpp>
 
 namespace tonyMesh {
 
@@ -12,7 +12,17 @@ struct Edge {
     explicit Edge(VertexIndex first, VertexIndex second) :
         first{std::min(first, second)},
         second{std::max(first, second)} {
+    }
 
+    explicit Edge(VertexIndex first, VertexIndex second, bool sorted) {
+        if (!sorted) {
+            this->first = first;
+            this->second = second;
+        }
+        else {
+            this->first = std::min(first, second);
+            this->second = std::max(first, second);
+        }
     }
 
     bool operator==(const Edge &other) const {
@@ -24,6 +34,14 @@ struct Edge {
             return first < other.first;
         return second < other.second;
     }
+
+    struct EdgeHash {
+        std::size_t operator()(const Edge& e) const {
+            auto h1{std::hash<VertexIndex>{}(e.first)};
+            auto h2{std::hash<VertexIndex>{}(e.second)};
+            return h1 ^ (h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2));
+        }
+    };
 };
 class Mesh {
 public:
@@ -34,8 +52,8 @@ public:
     Mesh& operator=(Mesh&& other) noexcept = default;
 
     Mesh(int vertices, int faces);
-    Mesh(const VertexMatrix& vertices, const FaceMatrix& faces);
-    Mesh(VertexMatrix&& vertices, FaceMatrix&& faces);
+    Mesh(const VertexMatrix& vertices, const FaceMatrix& faces, bool withDCEL=false);
+    Mesh(VertexMatrix&& vertices, FaceMatrix&& faces, bool withDCEL=false);
 
     [[nodiscard]] Index numVertices() const { return m_vertices.rows(); }
     [[nodiscard]] Index numFaces() const {return m_faces.rows(); }
@@ -50,6 +68,7 @@ public:
     // [[nodiscard]] const Face& getFace(FaceIndex i) const { assert(i < m_faces.rows()); return m_faces.row(i); }
 
     [[nodiscard]] std::vector<VertexIndex> getNeighbors(VertexIndex v) const;
+    [[nodiscard]] size_t degree(VertexIndex v) const { return getNeighbors(v).size(); }
     [[nodiscard]] std::vector<FaceIndex> getAdjancentFaces(VertexIndex v) const;
 
     [[nodiscard]] std::vector<std::vector<VertexIndex>> vertexVertexAdjacency() const;
@@ -59,11 +78,19 @@ public:
     [[nodiscard]] std::vector<Edge> boundaryEdges() const;
     [[nodiscard]] std::vector<bool> isBoundaryEdge(const std::vector<Edge>& edges) const;
     [[nodiscard]] std::pair<std::vector<Edge>, std::vector<bool>> isBoundaryEdge() const;
+    [[nodiscard]] bool isOnBoundary(VertexIndex v) const;
 
+    //TODO : TRIANGLE TRIANGLE ADJACENCY
+    //TODO : TRIANGLE EDGES ADJACENCY
 
-
+    [[nodiscard]] bool hasDCEL() const { return m_dcel != nullptr; }
+    [[nodiscard]] std::shared_ptr<DCEL> dcel() const {return m_dcel; }
+    void buildDCEL() const { m_dcel = std::make_shared<DCEL>(*this); }
 protected:
-    VertexMatrix m_vertices;
-    FaceMatrix m_faces;
+    VertexMatrix m_vertices{};
+    FaceMatrix m_faces{};
+
+    mutable std::shared_ptr<DCEL> m_dcel{};
+    void m_buildDCEL();
 };
 }
