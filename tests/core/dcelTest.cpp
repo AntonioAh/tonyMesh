@@ -117,8 +117,9 @@ TEST_P(DcelTest, boudaryEdges) {
 }
 
 TEST_P(DcelTest, boundaryVertices) {
+    const auto f(mesh.isBoundaryVertex());
     for (VertexIndex i{}; i < mesh.numVertices(); i++)
-        EXPECT_EQ(dcel->isOnBoundary(i), mesh.isOnBoundary(i));
+        EXPECT_EQ(dcel->isOnBoundary(i), f[i]);
 }
 
 TEST_P(DcelTest, vertexVertex) {

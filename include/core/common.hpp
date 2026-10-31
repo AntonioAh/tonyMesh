@@ -4,7 +4,7 @@
 
 namespace tonyMesh {
     typedef double Real;
-    typedef int FaceType;
+    typedef long FaceType;
     typedef Eigen::Index Index;
     typedef Eigen::Index VertexIndex;
     typedef Eigen::Index FaceIndex;

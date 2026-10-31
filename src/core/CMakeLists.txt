@@ -1,6 +1,8 @@
 add_library(tony_mesh_core STATIC mesh.cpp
         readMesh.cpp
-        dcel.cpp)
+        dcel.cpp
+        smoothing.cpp
+        connectivity.cpp)
 
 add_library(tonyMesh::core ALIAS tony_mesh_core)
 

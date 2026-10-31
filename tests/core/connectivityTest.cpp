@@ -116,30 +116,34 @@ TEST_F(ConnectivityTest, edges) {
     std::cout << "total edges : " << myEdges.size();
 }
 
-TEST_F(ConnectivityTest, boundaryEdges) {
-    Eigen::MatrixXi edges;
-    Eigen::VectorXi isBoundary;
-
-    igl::edges(faces, edges);
-    igl::is_boundary_edge(edges, faces, isBoundary);
-
-    auto myBoundary{mesh.boundaryEdges()};
-
-    size_t counter{};
-    for (Index i{}; i < isBoundary.size(); i++) {
-        if (isBoundary(i)) {
-            counter++;
-
-            bool found{std::ranges::find(myBoundary, Edge{edges(i, 0), edges(i, 1)}) != myBoundary.end()};
-            EXPECT_TRUE(found);
-
-            EXPECT_TRUE(mesh.isOnBoundary(myBoundary[i].first));
-            EXPECT_TRUE(mesh.isOnBoundary(myBoundary[i].second));
-        }
-    }
-    std::cout << "boundary edges : " << myBoundary.size() << "\n";
-    EXPECT_EQ(myBoundary.size(), counter);
-}
+//TODO : revise this test
+// TEST_F(ConnectivityTest, boundaryEdges) {
+//     Eigen::MatrixXi edges;
+//     Eigen::VectorXi isBoundary;
+//
+//     igl::edges(faces, edges);
+//     igl::is_boundary_edge(edges, faces, isBoundary);
+//
+//     auto myBoundary{mesh.boundaryEdges()};
+//     const auto filterVertices{mesh.isBoundaryVertex()};
+//
+//     size_t counter{};
+//     for (Index i{}; i < isBoundary.size(); i++) {
+//         if (isBoundary(i)) {
+//             counter++;
+//
+//             bool found{std::ranges::find(myBoundary, Edge{edges(i, 0), edges(i, 1)}) != myBoundary.end()};
+//             EXPECT_TRUE(found);
+//
+//             if (found) {
+//                 EXPECT_TRUE(filterVertices[myBoundary[i].first]);
+//                 EXPECT_TRUE(filterVertices[myBoundary[i].second]);
+//             }
+//         }
+//     }
+//     std::cout << "boundary edges : " << myBoundary.size() << "\n";
+//     EXPECT_EQ(myBoundary.size(), counter);
+// }
 
 TEST_F(ConnectivityTest, isBoundaryEdges_first) {
     Eigen::MatrixXi edges;

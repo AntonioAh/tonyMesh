@@ -4,6 +4,8 @@
 #include <unordered_set>
 #include <tbb/parallel_for.h>
 
+#include "core/connectivity.hpp"
+
 namespace tonyMesh {
     Mesh::Mesh(int vertices, int faces) {
         m_vertices.resize(vertices, 3);
@@ -89,23 +91,7 @@ namespace tonyMesh {
     }
 
     std::vector<Edge> Mesh::edges() const {
-        std::vector<Edge> edges;
-        edges.reserve(3 * m_faces.rows());
-
-        for (FaceIndex i{}; i < m_faces.rows(); i++) {
-            edges.emplace_back(m_faces(i, 0), m_faces(i, 1));
-            edges.emplace_back(m_faces(i, 0), m_faces(i, 2));
-            edges.emplace_back(m_faces(i, 1), m_faces(i, 2));
-        }
-
-        std::ranges::sort(edges, [](const Edge& a, const Edge& b) {
-            return a < b;
-        });
-
-        auto [first, last] = std::ranges::unique(edges);
-        edges.erase(first, last);
-
-        return edges;
+        return tonyMesh::connectivity::edges(m_faces);
     }
 
     std::vector<Edge> Mesh::boundaryEdges() const {
@@ -184,6 +170,17 @@ namespace tonyMesh {
 
 
         return {unique, isBound};
+    }
+
+    std::vector<bool> Mesh::isBoundaryVertex() const {
+        std::vector<bool> result(m_vertices.rows(), false);
+
+        const auto& boundEdges{boundaryEdges()};
+        for (const Edge& edge : boundEdges) {
+            result[edge.first] = true;
+            result[edge.second] = true;
+        }
+        return result;
     }
 
     bool Mesh::isOnBoundary(VertexIndex v) const {

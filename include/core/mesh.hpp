@@ -39,7 +39,7 @@ public:
     [[nodiscard]] std::vector<Edge> boundaryEdges() const;
     [[nodiscard]] std::vector<bool> isBoundaryEdge(const std::vector<Edge>& edges) const;
     [[nodiscard]] std::pair<std::vector<Edge>, std::vector<bool>> isBoundaryEdge() const;
-    [[nodiscard]] bool isOnBoundary(VertexIndex v) const;
+    [[nodiscard]] std::vector<bool> isBoundaryVertex() const;
 
     //TODO : TRIANGLE TRIANGLE ADJACENCY
     //TODO : TRIANGLE EDGES ADJACENCY
@@ -53,5 +53,9 @@ protected:
 
     mutable std::shared_ptr<DCEL> m_dcel{};
     void m_buildDCEL();
+
+private:
+    //TODO : revision needed
+    [[nodiscard]] bool isOnBoundary(VertexIndex v) const;
 };
 }
