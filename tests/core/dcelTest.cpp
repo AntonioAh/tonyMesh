@@ -28,14 +28,15 @@ protected:
 
     void print() {
         const auto dcel{mesh.dcel()};
+        const auto halfEdges{dcel->halfEdges()};
 
         for (size_t i{}; i < dcel->faces().size(); i++) {
             std::cout << i << " : ";
             auto curr{dcel->faces()[i]};
 
             do {
-                std::cout << curr->target << " ";
-                curr = curr->next;
+                std::cout << halfEdges[curr].target << " ";
+                curr = halfEdges[curr].next;
             }while (curr != dcel->faces()[i]);
             std::cout << "\n";
         }
@@ -46,13 +47,11 @@ protected:
             std::cout << "-1 : ";
             auto curr{a};
             do {
-                std::cout << curr->target << " ";
-                curr = curr->next;
+                std::cout << halfEdges[curr].target << " ";
+                curr = halfEdges[curr].next;
             } while (curr != a);
             std::cout << "\n";
         }
-
-
     }
 };
 
@@ -73,38 +72,20 @@ TEST_P(DcelTest, First) {
 
 TEST_P(DcelTest, twin) {
     EXPECT_EQ(dcel->faces().size(), mesh.numFaces());
-    for (FaceIndex i{}; i < mesh.numFaces(); i++) {
-        auto start{dcel->faces()[i]};
-        auto curr{start};
-        do {
-            EXPECT_EQ(curr->twin->twin, curr);
-            curr = curr->next;
-        }while (curr != start);
-    }
+    const auto& halfEdges{dcel->halfEdges()};
+
+    for (size_t i{}; i < halfEdges.size(); i++)
+        EXPECT_EQ(halfEdges[halfEdges[i].twin].twin ,i);
 }
 
 TEST_P(DcelTest, prevAndNext) {
     EXPECT_EQ(dcel->faces().size(), mesh.numFaces());
-    for (FaceIndex i{}; i < mesh.numFaces(); i++) {
-        auto start{dcel->faces()[i]};
-        auto curr{start};
-        do {
-            EXPECT_EQ(curr->prev->next, curr);
-            EXPECT_EQ(curr->next->prev, curr);
-            curr = curr->next;
-        }while (curr != start);
-    }
-}
+    const auto& halfEdges{dcel->halfEdges()};
 
-TEST_P(DcelTest, noEmpty) {
-    EXPECT_EQ(dcel->faces().size(), mesh.numFaces());
-    for (FaceIndex i{}; i < mesh.numFaces(); i++) {
-        ASSERT_NE(dcel->faces()[i], nullptr);
+    for (size_t i{}; i < halfEdges.size(); i++) {
+        EXPECT_EQ(halfEdges[halfEdges[i].next].prev, i);
+        EXPECT_EQ(halfEdges[halfEdges[i].prev].next, i);
     }
-
-    EXPECT_EQ(dcel->vertices().size(), mesh.numVertices());
-    for (VertexIndex i{}; i < mesh.numVertices(); i++)
-        ASSERT_NE(dcel->vertices()[i], nullptr);
 }
 
 TEST_P(DcelTest, getAdjacentFaces) {
@@ -138,6 +119,18 @@ TEST_P(DcelTest, boudaryEdges) {
 TEST_P(DcelTest, boundaryVertices) {
     for (VertexIndex i{}; i < mesh.numVertices(); i++)
         EXPECT_EQ(dcel->isOnBoundary(i), mesh.isOnBoundary(i));
+}
+
+TEST_P(DcelTest, vertexVertex) {
+    const auto vertexVertex{mesh.vertexVertexAdjacency()};
+    const auto dcelVV{dcel->vertexVertexAdjacency(true)};
+
+    ASSERT_EQ(dcelVV.size(), vertexVertex.size());
+    for (size_t i{}; i < vertexVertex.size(); i++) {
+        ASSERT_EQ(dcelVV[i].size(), vertexVertex[i].size());
+        for (size_t j{}; j < vertexVertex[i].size(); j++)
+            ASSERT_EQ(dcelVV[i][j], vertexVertex[i][j]);
+    }
 }
 
 
