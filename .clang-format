@@ -1,0 +1,7 @@
+---
+Language: Cpp
+BasedOnStyle: Google
+Standard: c++20
+IndentWidth: 4
+ContinuationIndentWidth: 4
+AccessModifierOffset: -4
