@@ -1,14 +1,5 @@
-# --- Public include prefix ----------------------------------------------------
-# Headers live in include/core/ but are included as <tonyMesh/...>.
-# A symlink build/<preset>/include/tonyMesh -> include/core provides the prefix.
-set(tonyMesh_gen_include "${PROJECT_BINARY_DIR}/include")
-file(MAKE_DIRECTORY "${tonyMesh_gen_include}")
-file(CREATE_LINK
-    "${PROJECT_SOURCE_DIR}/include/core"
-    "${tonyMesh_gen_include}/tonyMesh"
-    SYMBOLIC)
-
 # --- Core library -------------------------------------------------------------
+# Headers live in include/tonyMesh/ and are included as <tonyMesh/...> (include/ is the include root).
 # Sources are collected automatically; re-globbed at build time (CONFIGURE_DEPENDS).
 file(GLOB_RECURSE tonyMesh_core_sources CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
@@ -31,15 +22,15 @@ target_link_libraries(tonyMesh PRIVATE tonyMesh_warnings)
 # Register the public headers so IDEs (CLion) know they belong to tonyMesh
 # and resolve their includes (Eigen, TBB, ...) even before a .cpp uses them.
 file(GLOB_RECURSE tonyMesh_core_headers CONFIGURE_DEPENDS
-    "${PROJECT_SOURCE_DIR}/include/core/*.hpp")
+    "${PROJECT_SOURCE_DIR}/include/tonyMesh/*.hpp")
 
 # Plain PRIVATE sources (not a FILE_SET): a FILE_SET's BASE_DIRS would put
-# include/core on the include path and allow <mesh.hpp>; we want only <tonyMesh/mesh.hpp>.
+# include/tonyMesh on the include path and allow <mesh.hpp>; we want only <tonyMesh/mesh.hpp>.
 target_sources(tonyMesh PRIVATE ${tonyMesh_core_headers})
 
 target_include_directories(tonyMesh
     PUBLIC
-        $<BUILD_INTERFACE:${tonyMesh_gen_include}>)
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>)
 
 target_link_libraries(tonyMesh
     PUBLIC

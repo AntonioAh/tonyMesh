@@ -4,6 +4,8 @@
 
 namespace tonyMesh {
     typedef float Real;
+    typedef double DoubleReal;
+
     typedef Eigen::Index Index;
     typedef int FaceType;
 
@@ -11,5 +13,6 @@ namespace tonyMesh {
     typedef Eigen::Matrix<FaceType, Eigen::Dynamic, 3> FaceMatrix;
     typedef Eigen::Matrix<Real, Eigen::Dynamic, 3> NormalMatrix;
 
+    typedef Eigen::Matrix<Real, 1, 3> Point;
     typedef Eigen::Matrix<Real, 1, 3> Normal;
 }
