@@ -2,10 +2,12 @@
 
 #include <algorithm>
 #include <chrono>
+#include <iterator>
 #include <tonyMesh/connectivity.hpp>
 #include <tonyMesh/dataStructures.hpp>
-#include <iterator>
 #include <utility>
+
+#include "tonyMesh/graph.hpp"
 
 namespace tonyMesh::connectivity {
 std::vector<Index> vertex_vertex(Index vert, const FaceMatrix& faces) {
@@ -187,17 +189,15 @@ bool isManifold(size_t numVertices, const FaceMatrix& faces) {
 std::vector<size_t> connectedComponents(size_t numVertices,
                                         const FaceMatrix& faces) {
 
-    dataStructures::UnionFind uf(numVertices);
+    std::vector<std::pair<size_t, size_t>> edges;
     const auto numFaces{faces.rows()};
-    for (Index f{}; f  < numVertices; f++) {
-        uf.unite(faces(f, 0), faces(f, 1));
-        uf.unite(faces(f, 0), faces(f, 2));
+    for (Index f{}; f < numFaces; f++) {
+        edges.emplace_back(std::minmax(faces(f, 0), faces(f, 1)));
+        edges.emplace_back(std::minmax(faces(f, 0), faces(f, 2)));
     }
+    std::ranges::sort(edges);
+    edges.erase(std::unique(edges.begin(), edges.end()), edges.end());
 
-    for (size_t i{}; i < numVertices; i++)
-        uf.find(i);
-
-    std::vector<size_t> result{std::move(uf.parents())};
-    return result;
+    return graphs::connectedComponents(numVertices, edges);
 }
 }  // namespace tonyMesh::connectivity

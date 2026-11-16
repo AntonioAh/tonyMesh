@@ -10,7 +10,8 @@ if(NOT tonyMesh_core_sources)
     set(tonyMesh_placeholder "${PROJECT_BINARY_DIR}/generated/tonyMesh_placeholder.cpp")
     file(CONFIGURE OUTPUT "${tonyMesh_placeholder}"
         CONTENT "// Generated: placeholder until src/core contains sources.\n")
-    set(tonyMesh_core_sources "${tonyMesh_placeholder}")
+    set(tonyMesh_core_sources "${tonyMesh_placeholder}"
+            graph.cpp)
 endif()
 
 add_library(tonyMesh STATIC ${tonyMesh_core_sources})

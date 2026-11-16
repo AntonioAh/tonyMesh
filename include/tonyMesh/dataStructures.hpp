@@ -1,4 +1,6 @@
 #pragma once
+#include <cstddef>
+#include <utility>
 #include <vector>
 
 namespace tonyMesh::dataStructures {
@@ -13,7 +15,6 @@ public:
     }
 
     [[nodiscard]] const std::vector<size_t>& parents() const {return m_parents; }
-    [[nodiscard]] std::vector<size_t> parents() {return std::move(m_parents); }
 
     size_t find(size_t node) {
         while (m_parents[node] != node) {
