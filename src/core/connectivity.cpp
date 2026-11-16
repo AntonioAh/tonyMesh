@@ -184,4 +184,20 @@ bool isManifold(size_t numVertices, const FaceMatrix& faces) {
     return std::ranges::all_of(isVert, [](const bool& p) { return p; }) &&
            std::ranges::all_of(isEdges, [](const bool& p) { return p; });
 }
+std::vector<size_t> connectedComponents(size_t numVertices,
+                                        const FaceMatrix& faces) {
+
+    dataStructures::UnionFind uf(numVertices);
+    const auto numFaces{faces.rows()};
+    for (Index f{}; f  < numVertices; f++) {
+        uf.unite(faces(f, 0), faces(f, 1));
+        uf.unite(faces(f, 0), faces(f, 2));
+    }
+
+    for (size_t i{}; i < numVertices; i++)
+        uf.find(i);
+
+    std::vector<size_t> result{std::move(uf.parents())};
+    return result;
+}
 }  // namespace tonyMesh::connectivity

@@ -17,4 +17,6 @@ namespace tonyMesh::connectivity {
     std::vector<bool> isEdgeManifold(const FaceMatrix& faces);
     std::vector<bool> isVertexManifold(size_t numVertices, const FaceMatrix& faces);
     bool isManifold(size_t numVertices, const FaceMatrix& faces);
+
+    std::vector<size_t> connectedComponents(size_t numVertices, const FaceMatrix& faces);
 }
