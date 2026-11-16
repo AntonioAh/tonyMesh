@@ -1,6 +1,7 @@
 #pragma once
 #include <tonyMesh/common.hpp>
 #include <Eigen/Core>
+#include <tonyMesh/accelerationStructures/accelerationStructure.hpp>
 
 namespace tonyMesh::normals {
     NormalMatrix faceNormals(const VertexMatrix& vertices, const FaceMatrix& faces);
@@ -10,6 +11,6 @@ namespace tonyMesh::normals {
     };
     NormalMatrix vertexNormals(const VertexMatrix& vertices, const FaceMatrix& faces, Normalization type =Normalization::ANGLE);
 
-    NormalMatrix pointCloud(const VertexMatrix& vertices);
+    NormalMatrix pointCloud(const VertexMatrix& vertices, size_t numNeighbors, std::shared_ptr<AccelerationStructure> acc);
 
 }

@@ -1,4 +1,5 @@
 #include <tbb/parallel_for.h>
+#include <Eigen/Eigenvalues>
 
 #include <Eigen/Geometry>
 #include <cmath>
@@ -6,6 +7,8 @@
 #include <tonyMesh/connectivity.hpp>
 #include <tonyMesh/normals.hpp>
 #include <vector>
+#include <tonyMesh/accelerationStructures/kdTree.hpp>
+
 
 namespace tonyMesh::normals {
 
@@ -108,6 +111,41 @@ NormalMatrix vertexNormals(const VertexMatrix& vertices, const FaceMatrix& faces
             sum += coeff(static_cast<Index>(i)) * faceNorms.row(incident[i]).transpose();
         }
         result.row(v) = sum.normalized();
+    });
+
+    return result;
+}
+NormalMatrix pointCloud(const VertexMatrix& vertices, size_t numNeighbors,
+                        std::shared_ptr<AccelerationStructure> acc) {
+
+    if (numNeighbors < 3)
+        throw std::runtime_error("cannot compute with less the 3 neighbors. Need for the covariance matrix.");
+
+    if (!acc)
+        acc = std::make_shared<accelerationStructures::KdTree>(vertices);
+    const auto numVertices{vertices.rows()};
+    NormalMatrix result(numVertices, 3);
+    numNeighbors += 1;
+
+    tbb::parallel_for(Index{}, numVertices, [&](Index vert) {
+        const std::vector<Index> neighbors{acc->knn(vertices.row(vert), numNeighbors)};
+
+        Eigen::Matrix3<Real> outer{Eigen::Matrix3<Real>::Zero()};
+        Eigen::Vector3<Real> sum{Eigen::Vector3<Real>::Zero()};
+
+        const Eigen::Vector3<Real> q{vertices.row(vert)};
+        for (Index neigh : neighbors) {
+            const Eigen::Vector3<Real> d = vertices.row(neigh).transpose() - q;
+            sum += d;
+            outer.noalias() += d * d.transpose();
+        }
+        sum.normalize();
+        const Real invK{static_cast<Real>(1) / neighbors.size()};
+        const Eigen::Vector3<Real> mean = sum * invK;
+        const Eigen::Matrix3<Real> cov = outer*invK - mean*mean.transpose();
+
+        Eigen::SelfAdjointEigenSolver<Eigen::Matrix3<Real>> solver(cov);
+        result.row(vert) = solver.eigenvectors().col(0).transpose();
     });
 
     return result;
