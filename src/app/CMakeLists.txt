@@ -74,9 +74,21 @@ endif()
 
 add_executable(tonyMesh_app ${tonyMesh_app_sources})
 
+# Headers live in include/app/ but are included as <tonyMesh/app/...>.
+# A symlink <build>/generated/include/tonyMesh/app -> include/app provides that include name.
+set(tonyMesh_app_include_root "${PROJECT_BINARY_DIR}/generated/include")
+file(MAKE_DIRECTORY "${tonyMesh_app_include_root}/tonyMesh")
+file(CREATE_LINK "${PROJECT_SOURCE_DIR}/include/app"
+    "${tonyMesh_app_include_root}/tonyMesh/app" SYMBOLIC)
+
 target_include_directories(tonyMesh_app
     PRIVATE
-        ${PROJECT_SOURCE_DIR}/include/app)
+        ${tonyMesh_app_include_root})
+
+# Registered so IDEs attribute the headers to this target.
+file(GLOB_RECURSE tonyMesh_app_headers CONFIGURE_DEPENDS
+    "${PROJECT_SOURCE_DIR}/include/app/*.hpp")
+target_sources(tonyMesh_app PRIVATE ${tonyMesh_app_headers})
 
 target_link_libraries(tonyMesh_app
     PRIVATE

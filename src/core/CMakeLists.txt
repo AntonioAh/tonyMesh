@@ -24,7 +24,6 @@ target_link_libraries(tonyMesh PRIVATE tonyMesh_warnings)
 # and resolve their includes (Eigen, TBB, ...) even before a .cpp uses them.
 file(GLOB_RECURSE tonyMesh_core_headers CONFIGURE_DEPENDS
     "${PROJECT_SOURCE_DIR}/include/tonyMesh/*.hpp")
-
 # Plain PRIVATE sources (not a FILE_SET): a FILE_SET's BASE_DIRS would put
 # include/tonyMesh on the include path and allow <mesh.hpp>; we want only <tonyMesh/mesh.hpp>.
 target_sources(tonyMesh PRIVATE ${tonyMesh_core_headers})
