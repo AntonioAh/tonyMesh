@@ -35,4 +35,6 @@ target_include_directories(tonyMesh
 target_link_libraries(tonyMesh
     PUBLIC
         Eigen3::Eigen
-        TBB::tbb)
+        TBB::tbb
+        spdlog::spdlog
+)

@@ -34,4 +34,12 @@ FetchContent_Declare(TBB
 
 FetchContent_MakeAvailable(Eigen3 TBB)
 
+# --- spdlog -----------------------------------------------------------------
+FetchContent_Declare(spdlog
+    GIT_REPOSITORY https://github.com/gabime/spdlog.git
+    GIT_TAG v1.x
+    GIT_SHALLOW TRUE
+    SYSTEM)
+FetchContent_MakeAvailable(spdlog)
+
 unset(BUILD_TESTING)

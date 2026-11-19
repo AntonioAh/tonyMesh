@@ -1,7 +1,8 @@
+#include <spdlog/spdlog.h>
+
 #include <cctype>
 #include <fstream>
 #include <ios>
-#include <iostream>
 #include <limits>
 #include <locale>
 #include <optional>
@@ -102,38 +103,37 @@ Mesh readOff(std::fstream& file, const std::string& fileName) {
         return false;
     };
 
-    auto fail = [&](const std::string& what) -> std::runtime_error {
-        return std::runtime_error(fileName + ": " + what);
+    auto fail = [&](const std::string& what) -> void {
+        // return std::runtime_error(fileName + ": " + what);
+        return spdlog::error("{} : {}", fileName, what);
     };
 
-    if (!nextLine() || !line.starts_with("OFF"))
-        throw fail("missing OFF header");
+    if (!nextLine() || !line.starts_with("OFF")) fail("missing OFF header");
 
-    if (!nextLine()) throw fail("missing counts line");
+    if (!nextLine()) fail("missing counts line");
     unsigned numVertices{}, numFaces{};
     if (!(std::istringstream(line) >> numVertices >> numFaces))
-        throw fail("invalid counts line");
+        fail("invalid counts line");
 
     VertexMatrix vertices(numVertices, 3);
     for (unsigned i{}; i < numVertices; ++i) {
         if (!nextLine())
-            throw fail("expected " + std::to_string(numVertices) +
-                       " vertices, got " + std::to_string(i));
+            fail("expected " + std::to_string(numVertices) + " vertices, got " +
+                 std::to_string(i));
         std::istringstream ss(line);
         if (!(ss >> vertices(i, 0) >> vertices(i, 1) >> vertices(i, 2)))
-            throw fail("invalid vertex at index " + std::to_string(i));
+            fail("invalid vertex at index " + std::to_string(i));
     }
 
     FaceMatrix faces(numFaces, 3);
     for (unsigned i{}; i < numFaces; ++i) {
         if (!nextLine())
-            throw fail("expected " + std::to_string(numFaces) + " faces, got " +
-                       std::to_string(i));
+            fail("expected " + std::to_string(numFaces) + " faces, got " +
+                 std::to_string(i));
         std::istringstream ss(line);
         unsigned n{};
         if (!(ss >> n >> faces(i, 0) >> faces(i, 1) >> faces(i, 2)) || n != 3)
-            throw fail("invalid or non-triangle face at index " +
-                       std::to_string(i));
+            fail("invalid or non-triangle face at index " + std::to_string(i));
     }
 
     return {vertices, faces};
@@ -179,13 +179,13 @@ void writeOff(std::fstream& file, const Mesh& mesh) {
 Mesh readMesh(const std::string& filePath) {
     auto optFile{getFile(filePath, std::ios::in)};
     if (!optFile) {
-        std::cout << "cannot locate file " << filePath << "\n";
+        spdlog::error("cannot locate file {}", filePath);
         return {};
     }
 
     auto optFileType{getFileType(filePath)};
     if (!optFileType) {
-        std::cout << "cannot recognise extension of " << filePath << "\n";
+        spdlog::error("cannot recognize extension of {}", filePath);
         return {};
     }
 
@@ -197,19 +197,16 @@ Mesh readMesh(const std::string& filePath) {
             return readOff(*optFile, filePath);
             break;
     }
+    spdlog::info("read mesh from {}", filePath);
     return {};
 }
 
 void writeMesh(const Mesh& mesh, const std::string& filePath) {
     auto optFile{getFile(filePath, std::ios::out)};
-    if (!optFile) {
-        std::cout << "cannot locate file " << filePath << "\n";
-        return;
-    }
-
     auto optFileType{getFileType(filePath)};
+
     if (!optFileType) {
-        std::cout << "cannot recognise extension of " << filePath << "\n";
+        spdlog::error("cannot recognize extension of {}", filePath);
         return;
     }
 
@@ -221,5 +218,7 @@ void writeMesh(const Mesh& mesh, const std::string& filePath) {
             writeOff(*optFile, mesh);
             break;
     }
+
+    spdlog::info("written mesh in {}", filePath);
 }
 }  // namespace tonyMesh::IO
