@@ -1,28 +1,33 @@
 #include <spdlog/spdlog.h>
 
+#include <array>
 #include <cctype>
 #include <fstream>
+#include <iomanip>
 #include <ios>
 #include <limits>
 #include <locale>
 #include <optional>
 #include <sstream>
-#include <stdexcept>
 #include <string>
+#include <string_view>
 #include <tonyMesh/IO.hpp>
 #include <tonyMesh/common.hpp>
 #include <tonyMesh/mesh.hpp>
 #include <unordered_map>
+#include <vector>
 
 namespace tonyMesh::IO {
 namespace /* common to read and write*/ {
 constexpr std::array<std::string, 3> dirs = {"./meshes/", "../meshes/",
                                              "../../meshes/"};
 
-std::optional<std::fstream> getFile(const std::string& filePath,
+std::optional<std::fstream> getFile(std::string_view filePath,
                                     std::ios::openmode mode) {
     for (const auto& poss : dirs) {
-        std::fstream file(poss + filePath, mode);
+        std::string path{poss};
+        path += filePath;
+        std::fstream file(path, mode);
         if (file) return file;
     }
 
@@ -33,9 +38,9 @@ enum class FileType { OBJ, OFF };
 const std::unordered_map<std::string, FileType> typeMap{{"obj", FileType::OBJ},
                                                         {"off", FileType::OFF}};
 
-std::optional<FileType> getFileType(const std::string& filePath) {
+std::optional<FileType> getFileType(std::string_view filePath) {
     auto lastPoint{filePath.find_last_of('.')};
-    if (lastPoint == std::string::npos) return std::nullopt;
+    if (lastPoint == std::string_view::npos) return std::nullopt;
 
     std::string ext{filePath.substr(lastPoint + 1)};
     auto& f = std::use_facet<std::ctype<char>>(std::locale());
@@ -48,7 +53,8 @@ std::optional<FileType> getFileType(const std::string& filePath) {
 }  // namespace
 
 namespace /* read */ {
-Mesh readObj(std::fstream& file, const std::string& fileName) {
+std::optional<Mesh> readObj(std::fstream& file,
+                            [[maybe_unused]] std::string_view fileName) {
     std::vector<Point> vertices;
     std::vector<Face> faces;
     std::string line;
@@ -80,16 +86,18 @@ Mesh readObj(std::fstream& file, const std::string& fileName) {
         }
     }
 
-    VertexMatrix vM(vertices.size(), 3);
-    for (size_t i{}; i < vertices.size(); i++) vM.row(i) = vertices[i];
+    VertexMatrix vM(static_cast<Index>(vertices.size()), 3);
+    for (Index i{}; i < vM.rows(); i++)
+        vM.row(i) = vertices[static_cast<std::size_t>(i)];
 
-    FaceMatrix fM(faces.size(), 3);
-    for (size_t i{}; i < faces.size(); i++) fM.row(i) = faces[i];
+    FaceMatrix fM(static_cast<Index>(faces.size()), 3);
+    for (Index i{}; i < fM.rows(); i++)
+        fM.row(i) = faces[static_cast<std::size_t>(i)];
 
-    return {vM, fM};
+    return Mesh{vM, fM};
 }
 
-Mesh readOff(std::fstream& file, const std::string& fileName) {
+std::optional<Mesh> readOff(std::fstream& file, std::string_view fileName) {
     std::string line;
 
     // Reads the next non-empty, non-comment line into `line`. Returns false at
@@ -103,40 +111,43 @@ Mesh readOff(std::fstream& file, const std::string& fileName) {
         return false;
     };
 
-    auto fail = [&](const std::string& what) -> void {
-        // return std::runtime_error(fileName + ": " + what);
-        return spdlog::error("{} : {}", fileName, what);
+    // Logs the problem and yields "no mesh"; callers do `return fail(...)`.
+    auto fail = [&](const std::string& what) -> std::optional<Mesh> {
+        spdlog::error("{}: {}", fileName, what);
+        return std::nullopt;
     };
 
-    if (!nextLine() || !line.starts_with("OFF")) fail("missing OFF header");
+    if (!nextLine() || !line.starts_with("OFF"))
+        return fail("missing OFF header");
 
-    if (!nextLine()) fail("missing counts line");
+    if (!nextLine()) return fail("missing counts line");
     unsigned numVertices{}, numFaces{};
     if (!(std::istringstream(line) >> numVertices >> numFaces))
-        fail("invalid counts line");
+        return fail("invalid counts line");
 
     VertexMatrix vertices(numVertices, 3);
     for (unsigned i{}; i < numVertices; ++i) {
         if (!nextLine())
-            fail("expected " + std::to_string(numVertices) + " vertices, got " +
-                 std::to_string(i));
+            return fail("expected " + std::to_string(numVertices) +
+                        " vertices, got " + std::to_string(i));
         std::istringstream ss(line);
         if (!(ss >> vertices(i, 0) >> vertices(i, 1) >> vertices(i, 2)))
-            fail("invalid vertex at index " + std::to_string(i));
+            return fail("invalid vertex at index " + std::to_string(i));
     }
 
     FaceMatrix faces(numFaces, 3);
     for (unsigned i{}; i < numFaces; ++i) {
         if (!nextLine())
-            fail("expected " + std::to_string(numFaces) + " faces, got " +
-                 std::to_string(i));
+            return fail("expected " + std::to_string(numFaces) +
+                        " faces, got " + std::to_string(i));
         std::istringstream ss(line);
         unsigned n{};
         if (!(ss >> n >> faces(i, 0) >> faces(i, 1) >> faces(i, 2)) || n != 3)
-            fail("invalid or non-triangle face at index " + std::to_string(i));
+            return fail("invalid or non-triangle face at index " +
+                        std::to_string(i));
     }
 
-    return {vertices, faces};
+    return Mesh{vertices, faces};
 }
 }  // namespace
 
@@ -176,35 +187,40 @@ void writeOff(std::fstream& file, const Mesh& mesh) {
 }
 }  // namespace
 
-Mesh readMesh(const std::string& filePath) {
+std::optional<Mesh> readMesh(std::string_view filePath) {
     auto optFile{getFile(filePath, std::ios::in)};
     if (!optFile) {
         spdlog::error("cannot locate file {}", filePath);
-        return {};
+        return std::nullopt;
     }
 
     auto optFileType{getFileType(filePath)};
     if (!optFileType) {
         spdlog::error("cannot recognize extension of {}", filePath);
-        return {};
+        return std::nullopt;
     }
 
+    std::optional<Mesh> mesh;
     switch (*optFileType) {
         case FileType::OBJ:
-            return readObj(*optFile, filePath);
+            mesh = readObj(*optFile, filePath);
             break;
         case FileType::OFF:
-            return readOff(*optFile, filePath);
+            mesh = readOff(*optFile, filePath);
             break;
     }
-    spdlog::info("read mesh from {}", filePath);
-    return {};
+    if (mesh) spdlog::info("read mesh from {}", filePath);
+    return mesh;
 }
 
-void writeMesh(const Mesh& mesh, const std::string& filePath) {
+void writeMesh(const Mesh& mesh, std::string_view filePath) {
     auto optFile{getFile(filePath, std::ios::out)};
-    auto optFileType{getFileType(filePath)};
+    if (!optFile) {
+        spdlog::error("cannot open file {} for writing", filePath);
+        return;
+    }
 
+    auto optFileType{getFileType(filePath)};
     if (!optFileType) {
         spdlog::error("cannot recognize extension of {}", filePath);
         return;
