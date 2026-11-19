@@ -11,8 +11,8 @@
 namespace tonyMesh::app {
 
 namespace {
-constexpr std::array<std::string, 3> dirs = {"./shaders/", "../shaders/",
-                                             "../../shaders/"};
+constexpr std::array<std::string, 3> dirs = {
+    "./data/shaders/", "../data/shaders/", "../../data/shaders/"};
 std::optional<std::ifstream> findFile(const std::string& filePath) {
     for (const auto& path : dirs) {
         std::ifstream file(path + filePath);
@@ -21,7 +21,8 @@ std::optional<std::ifstream> findFile(const std::string& filePath) {
     return std::nullopt;
 }
 
-// Compiles one stage. On failure the GL shader object is deleted before throwing.
+// Compiles one stage. On failure the GL shader object is deleted before
+// throwing.
 unsigned compileShader(GLenum type, const char* source) {
     const unsigned shader = glCreateShader(type);
     glShaderSource(shader, 1, &source, nullptr);
@@ -120,5 +121,16 @@ Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath) {
 
     glDeleteShader(vertex);
     glDeleteShader(fragment);
+}
+
+// The shader must be in use (use()) when these are called.
+void Shader::setMat4(const char* name, const Eigen::Matrix4f& matrix) const {
+    const int location = glGetUniformLocation(m_ID, name);
+    glUniformMatrix4fv(location, 1, GL_FALSE, matrix.data());
+}
+
+void Shader::setVec3(const char* name, const Eigen::Vector3f& vector) const {
+    const int location = glGetUniformLocation(m_ID, name);
+    glUniform3fv(location, 1, vector.data());
 }
 }  // namespace tonyMesh::app

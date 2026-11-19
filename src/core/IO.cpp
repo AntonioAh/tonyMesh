@@ -19,8 +19,8 @@
 
 namespace tonyMesh::IO {
 namespace /* common to read and write*/ {
-constexpr std::array<std::string, 3> dirs = {"./meshes/", "../meshes/",
-                                             "../../meshes/"};
+constexpr std::array<std::string, 3> dirs = {
+    "./data/meshes/", "../data/meshes/", "../../data/meshes/"};
 
 std::optional<std::fstream> getFile(std::string_view filePath,
                                     std::ios::openmode mode) {

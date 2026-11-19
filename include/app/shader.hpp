@@ -1,4 +1,5 @@
 #pragma once
+#include <Eigen/Core>
 #include <string>
 
 namespace tonyMesh::app {
@@ -16,6 +17,10 @@ public:
     void use() const;
 
     unsigned ID() const { return m_ID; }
+
+    // `name` must be a null-terminated string (a literal is fine).
+    void setMat4(const char* name, const Eigen::Matrix4f& matrix) const;
+    void setVec3(const char* name, const Eigen::Vector3f& vector) const;
 
 private:
     unsigned m_ID{};
