@@ -1,4 +1,5 @@
 #pragma once
+#include <GLFW/glfw3.h>
 #include <memory.h>
 
 #include <tonyMesh/app/rendered.hpp>
@@ -7,7 +8,8 @@ namespace tonyMesh::app {
 
 class Application {
 public:
-    explicit Application();
+    explicit Application() = default;
+    void start();
     void run();
 
     const Renderer& renderer() const { return m_renderer; }
@@ -19,6 +21,8 @@ public:
 private:
     Renderer m_renderer;
     ResourceManager m_resources;
+
+    GLFWwindow* m_window{};
 };
 
 }  // namespace tonyMesh::app

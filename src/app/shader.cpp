@@ -6,6 +6,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <tonyMesh/app/shader.hpp>
+#include <utility>
 
 namespace tonyMesh::app {
 
@@ -19,7 +20,50 @@ std::optional<std::ifstream> findFile(const std::string& filePath) {
     }
     return std::nullopt;
 }
+
+// Compiles one stage. On failure the GL shader object is deleted before throwing.
+unsigned compileShader(GLenum type, const char* source) {
+    const unsigned shader = glCreateShader(type);
+    glShaderSource(shader, 1, &source, nullptr);
+    glCompileShader(shader);
+
+    int success{};
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        char infoLog[1024]{};
+        glGetShaderInfoLog(shader, sizeof(infoLog), nullptr, infoLog);
+        glDeleteShader(shader);
+        throw std::runtime_error(std::string("shader compilation failed: ") +
+                                 infoLog);
+    }
+    return shader;
+}
+
+void checkLink(unsigned program) {
+    int success{};
+    glGetProgramiv(program, GL_LINK_STATUS, &success);
+    if (!success) {
+        char infoLog[1024]{};
+        glGetProgramInfoLog(program, sizeof(infoLog), nullptr, infoLog);
+        throw std::runtime_error(std::string("shader linking failed: ") +
+                                 infoLog);
+    }
+}
 }  // namespace
+
+Shader::~Shader() {
+    if (m_ID != 0) glDeleteProgram(m_ID);
+}
+
+Shader::Shader(Shader&& other) noexcept : m_ID(std::exchange(other.m_ID, 0)) {}
+
+Shader& Shader::operator=(Shader&& other) noexcept {
+    if (this != &other) {
+        if (m_ID != 0) glDeleteProgram(m_ID);
+        m_ID = std::exchange(other.m_ID, 0);
+    }
+    return *this;
+}
 
 void Shader::use() const { glUseProgram(m_ID); }
 Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath) {
@@ -53,41 +97,28 @@ Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath) {
     const char* vShaderCode{vertexCode.c_str()};
     const char* fShaderCode{fragmentCode.c_str()};
 
-    unsigned vertex, fragment;
+    // If anything throws, the destructor will not run (the object is not fully
+    // constructed), so release every GL object created so far here.
+    // glDeleteShader/glDeleteProgram silently ignore the name 0.
+    unsigned vertex{}, fragment{};
+    try {
+        vertex = compileShader(GL_VERTEX_SHADER, vShaderCode);
+        fragment = compileShader(GL_FRAGMENT_SHADER, fShaderCode);
 
-    vertex = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertex, 1, &vShaderCode, nullptr);
-    glCompileShader(vertex);
-    m_checkCompilation(vertex);
-
-    fragment = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragment, 1, &fShaderCode, nullptr);
-    glCompileShader(fragment);
-    m_checkCompilation(fragment);
-
-    m_ID = glCreateProgram();
-    glAttachShader(m_ID, vertex);
-    glAttachShader(m_ID, fragment);
-    glLinkProgram(m_ID);
-    m_checkCompilation(m_ID, true);
+        m_ID = glCreateProgram();
+        glAttachShader(m_ID, vertex);
+        glAttachShader(m_ID, fragment);
+        glLinkProgram(m_ID);
+        checkLink(m_ID);
+    } catch (...) {
+        glDeleteShader(vertex);
+        glDeleteShader(fragment);
+        glDeleteProgram(m_ID);
+        m_ID = 0;
+        throw;
+    }
 
     glDeleteShader(vertex);
     glDeleteShader(fragment);
-}
-
-void Shader::m_checkCompilation(unsigned part, bool isProgram) {
-    int success;
-    char infoLog[512];
-
-    if (isProgram) {
-        glGetProgramiv(part, GL_LINK_STATUS, &success);
-        if (!success) glGetProgramInfoLog(part, 512, nullptr, infoLog);
-    } else {
-        glGetProgramiv(part, GL_COMPILE_STATUS, &success);
-        if (!success) glGetShaderInfoLog(part, 512, nullptr, infoLog);
-    }
-
-    if (!success)
-        throw std::runtime_error("ERROR SHADER LOADING" + std::string(infoLog));
 }
 }  // namespace tonyMesh::app
